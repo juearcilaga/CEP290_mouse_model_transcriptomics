@@ -30,7 +30,7 @@ library(RColorBrewer)
 # ------------------------------------------------------------------------------
 # Set working directory
 # ------------------------------------------------------------------------------
-setwd('C:/Users/sammi/OneDrive - Newcastle University/Shared_Folder_UG_proj_2025/DEG_Analysis/only_males/')
+setwd('Project_Cep290_GT_AA/')
 
 # ------------------------------------------------------------------------------
 # Read in raw count data
