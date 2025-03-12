@@ -21,7 +21,7 @@
 #   and inflammatory stress, with additional information on the stress type.
 #-------------------------------------------------------------------------------
 # Set working directory
-setwd('C:/Users/sammi/OneDrive - Newcastle University/Research Project/Our Data')
+setwd('Project_Cep290_GT_AA/')
 
 # Load required libraries
 library(tidyverse)
