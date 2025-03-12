@@ -19,7 +19,9 @@
 # - GSEA Results: Enriched biological processes based on the ranked gene list.
 # - Dotplot: A visualization of the top 20 enriched biological processes.
 #-------------------------------------------------------------------------------
-
+# Set Working Directory
+#-------------------------------------------------------------------------------
+setwd('Project_Cep290_GT_AA/')
 #-------------------------------------------------------------------------------
 # Load Required Libraries
 #-------------------------------------------------------------------------------
