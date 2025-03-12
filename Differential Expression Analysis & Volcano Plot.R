@@ -17,7 +17,7 @@
 #------------------------------------------------------------------------------
 
 
-setwd('C:\\Users\\sammi\\OneDrive - Newcastle University\\Shared_Folder_UG_proj_2025\\DEG_Analysis')
+setwd('Project_Cep290_GT_AA/')
 library(biomaRt)
 library(DESeq2)    # For differential expression analysis
 library(edgeR)     # For working with count data
