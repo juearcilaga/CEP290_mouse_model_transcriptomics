@@ -1,0 +1,133 @@
+# Description: 
+# This script use to plot heatmaps for up- and downregulated  genes following specific treatment in mice kidney samples using single cell transcriptomics from Park et al..
+# All samples are males. The differentially expressed genes inputed are based on the threshold of p-adj < 0.05, log2 Foldchange > 0.58.
+#
+#
+# Author: Jia Ying Yeow
+# Date: 2025.03.18
+#
+#
+# Inputs:
+# - dysregulated_genes_after_ASO_in_mutant.txt: up- and downregulated genes after ASO treatment in mutant samples
+# - scrna_data.csv: single cell transcriptomics data obtained from Park et al.
+#
+#
+# Outputs:
+# - dysregulated_genes_after_ASO_in_mutant.png: visualisation for the expression of up- and downregulated genes by ASO treatment in different cell types
+#
+#
+# Dependencies:
+# - R packages: tidyverse, pheatmap, RColorBrewer, dplyr.
+#
+#
+# ----------------------------------------------------------------------------------------------------------
+# Set directory & load libraries
+# ----------------------------------------------------------------------------------------------------------
+
+library(tidyverse)
+library(pheatmap)
+library(RColorBrewer)
+library(dplyr)
+
+
+setwd('Project_Cep290_GT_AA/')
+
+#-----------------------------------------------------------------------------------------------------------
+# Step 1: Input files
+#-----------------------------------------------------------------------------------------------------------
+
+dysregulated_genes_after_ASO_in_mutant <- read.delim('heatmap for dysregulated genes after ASO in mutant/dysregulated_genes_after_ASO_in_mutant.txt')
+
+scrna_data <- read_csv('microarray study P0 and P14/scrna_data.csv')
+
+#-----------------------------------------------------------------------------------------------------------
+# Step 2: Processing data by removing columns
+#-----------------------------------------------------------------------------------------------------------
+
+#set variables 
+y <- c(1:8)
+
+
+#Insert variable
+dysregulated_genes_after_ASO_in_mutant <- data.frame(dysregulated_genes_after_ASO_in_mutant, y)
+
+
+#Remove column and replace it with Gene names
+dysregulated_genes_after_ASO_in_mutant <- dysregulated_genes_after_ASO_in_mutant %>% remove_rownames %>% column_to_rownames((var='Genes'))
+
+
+#remove non-unique values from row 904 and 905
+scrna_data <- scrna_data[-c(904,905), ] 
+
+#Remove column and replace it with Gene names
+scrna_data <- scrna_data %>% remove_rownames %>% column_to_rownames((var='Column1'))
+
+#-----------------------------------------------------------------------------------------------------------
+# Step 3: Filter dysregulated genes in scrna_data
+#-----------------------------------------------------------------------------------------------------------
+
+#filtered dysregulated genes in scrna data
+dysregulated_genes_after_ASO_in_mutant_df <- scrna_data %>% filter(rownames(scrna_data) %in% rownames(dysregulated_genes_after_ASO_in_mutant))
+
+
+#Define vector for upregulated and downregulated genes 
+upregulated_genes <- c('Cd74')
+downregulated_genes <- c('Dbp','Cyp24a1')
+
+
+#Add a regulation column to filtered data frame
+dysregulated_genes_after_ASO_in_mutant_df$Regulation <- ifelse(rownames(dysregulated_genes_after_ASO_in_mutant_df) %in% upregulated_genes, 
+                                                                 "Upregulated", 
+                                                                 ifelse(rownames(dysregulated_genes_after_ASO_in_mutant_df) %in% downregulated_genes, 
+                                                                        "Downregulated", 
+                                                                        "Not Specified"))
+
+
+# Sort the data based on the Regulation column to group upregulated and downregulated genes
+dysregulated_genes_after_ASO_in_mutant_df$Regulation <- factor(dysregulated_genes_after_ASO_in_mutant_df$Regulation, 
+                                                                 levels = c("Upregulated", "Downregulated"))
+
+
+# Sort the dataframe by the Regulation column
+dysregulated_genes_after_ASO_in_mutant_df <- dysregulated_genes_after_ASO_in_mutant_df[order(dysregulated_genes_after_ASO_in_mutant_df$Regulation), ]  
+
+#-----------------------------------------------------------------------------------------------------------
+# Step 4: Generation of heatmap for upregulated & downregulated genes after ASO treament
+#-----------------------------------------------------------------------------------------------------------
+
+# Define desired column order (based on the location of cells in kidney)
+colnames(dysregulated_genes_after_ASO_in_mutant_df) 
+
+desired_order <- c("Podo","PT","LOH","DCT","CD-IC","CD-PC","CD_Trans","Novel1","Novel2","Endo","Macro","Fib","Neutro","B_lymph","T_lymph","NK")  
+
+# Reorder the columns of the data matrix
+dysregulated_genes_after_ASO_in_mutant_df <- dysregulated_genes_after_ASO_in_mutant_df[, c(desired_order, "Regulation")]
+
+# Ensure Regulation column is a factor with defined levels
+dysregulated_genes_after_ASO_in_mutant_df$Regulation <- factor(dysregulated_genes_after_ASO_in_mutant_df$Regulation, 
+                                                                 levels = c("Upregulated", "Downregulated"))
+
+# Create the annotation row
+annotation_row <- data.frame(Regulation = dysregulated_genes_after_ASO_in_mutant_df$Regulation)
+rownames(annotation_row) <- rownames(dysregulated_genes_after_ASO_in_mutant_df)  # Ensure row names match
+
+
+# Define the color for the annotation (e.g., Upregulated = red, Downregulated = blue)
+annotation_colors <- list(Regulation = c("Upregulated" = "#F8766D", "Downregulated" = "blue"))
+
+# Plot the heatmap with explicit column order
+pheatmap(
+  dysregulated_genes_after_ASO_in_mutant_df[, desired_order],  # Use reordered columns
+  annotation_row = annotation_row,  # Add Regulation annotation
+  annotation_colors = annotation_colors,  # Apply color mapping to Regulation
+  scale = "row",  # Scale rows (genes)
+  main = "Gene Expression of Dysregulated Genes by ASO Treatment in mutant samples",  # Title, Rename for your actual title
+  fontsize = 10,  # Font size for the title
+  fontsize_row = 7,  # Font size for gene labels
+  fontsize_col = 7,  # Font size for sample labels
+  legend = TRUE,  # Show color legend
+  cluster_rows = FALSE,  # Disable row clustering (so upregulated/downregulated genes can group together)
+  cluster_cols = FALSE,  # Prevent clustering from overriding your custom order
+  show_rownames = TRUE,  # Show row names (genes)
+  show_colnames = TRUE  # Show column names (samples)
+)
